@@ -1,0 +1,239 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Demineur 3D</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="js/three.min.js"></script>
+    <script src="js/Detector.js"></script>
+    <script src="js/OrbitControls.js"></script>
+    <script src="js/stats.min.js"></script>
+</head>
+
+<body>
+    <div id="container"></div>
+    <script>
+        var isMouseDown = false;
+        if (!Detector.webgl) Detector.addGetWebGLMessage();
+        var stats;
+        var mouse = new THREE.Vector2();
+        raycaster = new THREE.Raycaster();
+        var camera, controls, scene, renderer;
+        init();
+        animate();
+        function onMouseMove(){
+            event.preventDefault();
+            mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+            mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+        }
+        function onMouseDown(){
+            isMouseDown = true;
+        }
+        function onMouseUp(){
+            isMouseDown = false;
+        }
+        function init() {
+            
+            //basics
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0xcccccc, 0.0005);
+            renderer = new THREE.WebGLRenderer();
+            renderer.setClearColor(scene.fog.color);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            var container = document.getElementById('container');
+            container.appendChild(renderer.domElement);
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 100000);
+            camera.position.z = 1000;
+            camera.position.y = 150;
+            camera.position.x=150;
+            //controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.addEventListener('change', render);
+            controls.enableZoom = true;
+            controls.target.set(20*5/2,20*5/2,20*5/2)
+            controls.autoRotate = true
+            //light
+            light = new THREE.DirectionalLight(0xffffff);
+            light.position.set(1, 1, 1);
+            scene.add(light);
+            light = new THREE.DirectionalLight(0x002288);
+            light.position.set(-1, -1, -1);
+            scene.add(light);
+            light = new THREE.AmbientLight(0x222222);
+            scene.add(light);
+            //construction
+            // Cube
+            var group= new THREE.Geometry();
+            var texture = new THREE.TextureLoader().load( "normal.png" );
+            var material = new THREE.MeshStandardMaterial( {  map: texture} );
+            var geometry = new THREE.BoxGeometry( 5, 5, 5 );
+            for (v=0;v<20;v++){
+                for (u=0;u<20;u++){
+                    for (o=0;o<20;o++){
+				        var cube = new THREE.Mesh( geometry, material );
+				        cube.position.y=5*o;
+                        cube.position.x=5*u;
+                        cube.position.z=5*v;
+                        cube.updateMatrix();
+                        cube.callback = function() { console.log( this ); }
+                        group.merge( cube.geometry, cube.matrix, cube.callback);                        
+                    }
+                }
+            }
+            scene.add(new THREE.Mesh(group,material));
+            //options
+            stats = new Stats();
+            container.appendChild(stats.dom);
+            window.addEventListener('resize', onWindowResize, false);
+            window.addEventListener('mousedown', onMouseDown);
+            window.addEventListener('mouseup', onMouseUp);
+            window.addEventListener( 'mousemove', onMouseMove);
+            
+            
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if(!isMouseDown){
+            controls.update(); }
+            stats.update();
+            render();
+        }
+
+        function render() {
+            raycaster.setFromCamera( mouse, camera );
+            var intersects = raycaster.intersectObjects( scene.children );
+            if ( intersects.length > 0 ) {
+                isMouseDown = true;
+                //intersects[0].object.callback()
+
+                }
+            else{
+                isMouseDown = false;
+            }
+            renderer.render(scene, camera);
+            
+        }
+    </script>
+</body>
+
+</html>
+<script type="text/javascript" src="js/brython.js"></script>
+<script type="text/javascript" src="js/brython_stdlib.js"></script>
+<script>
+    function waitForIt() {
+        setTimeout(function () {
+            h = confirm("Tu as perdu, veux-tu recommencer?")
+            if (h) {
+                location.reload(true)
+            }
+        }, 500);
+    }
+    window.onload = function () {
+        localStorage.clear()
+        localStorage.setItem("aut", 0)
+            //brython({debug:1, cache:'none', static_stdlib_import:true})
+    }
+</script>
+<script type="text/python3">
+from browser import window,console,confirm
+from browser.local_storage import storage
+from browser.object_storage import ObjectStorage
+import random,time,sys
+#sys.setrecursionlimit(2000)
+
+object_storage = ObjectStorage(storage)
+pos = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1), (0, 0)]
+grille3D = [[[0] * 20 for i in range(20)] for j in range(20)]
+revele = [[[0] * 20 for i in range(20)] for j in range(20)]
+final=[[[0] * 20 for i in range(20)] for j in range(20)]
+
+
+# functions
+def onclick(x, y):
+    try:
+        if grille[y][x] == "*":
+            return 1
+        if grille[y][x] != 0:
+            revele[y][x] = 1
+            return 0
+        grille[y][x] = "@"
+        revele[y][x] = 1
+        for c in pos:
+            if x+c[0]>-1:
+                if y+c[1]>-1:
+                    onclick(x + c[0], y + c[1])
+    except:
+        pass
+
+def onclickExecuted(x,y):
+    u=window.test(y*20+x)
+    
+    if not int(storage["aut"]) and u:
+        
+        j=onclick(x,y)
+        if j:
+            storage["e"]=str(j)
+            afficher(grille)
+            window.waitForIt()
+            return
+        afficher(revele)
+    else:
+        window.putIt(y*20+x)
+
+#logic for placement
+def bombe(d):
+    x = random.randint(0, 19)
+    y = random.randint(0, 19)
+    while grille3D[d][y][x] == "*":
+        x = random.randint(0, 9)
+        y = random.randint(0, 9)
+    grille3D[d][y][x] = "*"
+    number(x, y, d)
+
+
+def number(x, y,d):
+    for c in pos:
+        if 20>(y+c[0])>-1 and 20>(c[1]+x) > -1 :
+            #grille courante
+            if grille3D[d][y + c[0]][x + c[1]] != "*":
+                grille3D[d][y + c[0]][x + c[1]] += 1
+            #grille en retroaction: base inferieure du cube
+            if d>0 and grille3D[d-1][y + c[0]][x + c[1]] != "*" :
+                grille3D[d-1][y + c[0]][x + c[1]] += 1
+            #grille en proaction: base superieure du cube
+            if d<19:
+                grille3D[d + 1][y + c[0]][x + c[1]] += 1
+
+#python output
+def output(g):
+    for col in g: print(" ".join(map(str, col)))
+    
+def outputFace(g):
+    for j in range(20):
+        for i in range(20):
+            print(" ".join(map(str, g[j][i])))
+        print()       
+
+    
+#main 
+def main():
+    for i in range(20):
+        for loop in range(int(20*20*0.05)):
+            bombe(i)
+    print("e")
+    outputFace(grille3D)
+main()
+window.mouvementDemineur = onclickExecuted
+    
+
+</script>

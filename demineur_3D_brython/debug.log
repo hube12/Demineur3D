@@ -1,0 +1,17 @@
+[0327/150315.482:ERROR:crash_report_database_win.cc(563)] CreateDirectory C:\Program Files (x86)\temp: Accès refusé. (0x5)
+[0327/150315.560:ERROR:crash_report_database_win.cc(563)] CreateDirectory C:\Program Files (x86)\temp: Accès refusé. (0x5)
+[0327/150315.575:ERROR:registration_protocol_win.cc(83)] TransactNamedPipe: Le canal de communication a été fermé. (0x6D)
+[0327/150317.323:ERROR:crashpad_win.cc(223)] Crashpad handler failed to start, crash reporting disabled
+[0327/151037.445:ERROR:crash_report_database_win.cc(563)] CreateDirectory C:\Program Files (x86)\temp: Accès refusé. (0x5)
+[0327/151037.445:ERROR:registration_protocol_win.cc(84)] TransactNamedPipe: Le canal de communication a été fermé. (0x6D)
+[0327/151037.445:ERROR:crash_report_database_win.cc(563)] CreateDirectory C:\Program Files (x86)\temp: Accès refusé. (0x5)
+[0327/153713.074:ERROR:crash_report_database_win.cc(563)] CreateDirectory C:\Program Files (x86)\temp: Accès refusé. (0x5)
+[0327/153713.076:ERROR:registration_protocol_win.cc(84)] TransactNamedPipe: Le canal de communication a été fermé. (0x6D)
+[0327/153713.076:ERROR:crash_report_database_win.cc(563)] CreateDirectory C:\Program Files (x86)\temp: Accès refusé. (0x5)
+[0329/171634.878:ERROR:crash_report_database_win.cc(563)] CreateDirectory C:\Program Files (x86)\temp: Accès refusé. (0x5)
+[0329/171634.956:ERROR:crash_report_database_win.cc(563)] CreateDirectory C:\Program Files (x86)\temp: Accès refusé. (0x5)
+[0329/171634.956:ERROR:registration_protocol_win.cc(83)] TransactNamedPipe: Le canal de communication a été fermé. (0x6D)
+[0329/171636.235:ERROR:crashpad_win.cc(223)] Crashpad handler failed to start, crash reporting disabled
+[0330/175841.567:ERROR:crash_report_database_win.cc(563)] CreateDirectory C:\Program Files (x86)\temp: Accès refusé. (0x5)
+[0330/175841.739:ERROR:registration_protocol_win.cc(83)] TransactNamedPipe: Le canal de communication a été fermé. (0x6D)
+[0330/175842.877:ERROR:crashpad_win.cc(223)] Crashpad handler failed to start, crash reporting disabled
