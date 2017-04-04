@@ -17,10 +17,8 @@
 <body>
     <div id="container"></div>
     <script>
-        var oldWarnFunction = console.warn;
-        console.warn = function(){};
-        var o
-        var cubeSize=5
+        var saveE=[];
+        var cubeSize=10;
         var isMouseDown = false;
         if (!Detector.webgl) Detector.addGetWebGLMessage();
         var mouse = new THREE.Vector2();
@@ -28,7 +26,6 @@
         var camera, controls, scene, renderer,INTERSECTED,stats,triangle1,deltaX,deltaY;
         //var targetList = [];
         init();
-        animate();
         function onMouseMove(event){
             event.preventDefault();
             mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
@@ -41,19 +38,31 @@
             deltaX=0
             deltaY=0
         }
+        function getRandomColor() {
+            var letters = '0123456789abcdef';
+            var color = '0x';
+            for (var i = 0; i < 6; i++ ) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return parseInt(color,16);
+        }
+        var mapColor=[]
+        for (h=0;h<26;h++){
+            mapColor.push(getRandomColor())
+        }
         function init() {
             
             //basics
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0xcccccc, 0.0005);
+            scene.fog = new THREE.FogExp2(0xcccccc, 0.002);
             renderer = new THREE.WebGLRenderer();
             renderer.setClearColor(scene.fog.color);
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(window.innerWidth, window.innerHeight);
             var container = document.getElementById('container');
             container.appendChild(renderer.domElement);
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 100000);
-            camera.position.z = 100;
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+            camera.position.z = 140;
             camera.position.y = 0;
             camera.position.x=0;
             //controls
@@ -63,42 +72,43 @@
             controls.target.set(cubeSize*5/2,cubeSize*5/2,cubeSize*5/2)
             controls.autoRotate = true
             //light
-            light = new THREE.DirectionalLight(0xffffff);
-            light.position.set(1, 1, 1);
+            light = new THREE.DirectionalLight(0xA9ADB5,0.6);
+            light.position.set(100, 100, 100);
             scene.add(light);
-            light = new THREE.DirectionalLight(0xffffff);
-            light.position.set(-1, -1, -1);
+            light = new THREE.DirectionalLight(0xA9ADB5,0.6);
+            light.position.set(-100, -100, -100);
             scene.add(light);
-            light = new THREE.AmbientLight(0x222222);
+            light = new THREE.AmbientLight(0x222222,0.9);
             scene.add(light);
             //construction
             // Cube
             var group= new THREE.Geometry();
             var texture = new THREE.TextureLoader().load( "normal.png" );
-            var materials = [
-                new THREE.MeshStandardMaterial( { map: texture, vertexColors: THREE.FaceColors}),
-                new THREE.MeshStandardMaterial( { map: texture, vertexColors: THREE.FaceColors}),
-                new THREE.MeshStandardMaterial( { map: texture, vertexColors: THREE.FaceColors}),
-                new THREE.MeshStandardMaterial( { map: texture, vertexColors: THREE.FaceColors}),
-                new THREE.MeshStandardMaterial( { map: texture, vertexColors: THREE.FaceColors}),
-                new THREE.MeshStandardMaterial( { map: texture, vertexColors: THREE.FaceColors}),
-                
-            ]
-            materials.needsUpdate = true;
+            /*var materials = [
+                new THREE.MeshStandardMaterial( { map: texture, vertexColors: THREE.FaceColors, opacity:0.8, transparent:true}),
+                new THREE.MeshStandardMaterial( { map: texture, vertexColors: THREE.FaceColors, opacity:0.8, transparent:true}),
+                new THREE.MeshStandardMaterial( { map: texture, vertexColors: THREE.FaceColors, opacity:0.8, transparent:true}),
+                new THREE.MeshStandardMaterial( { map: texture, vertexColors: THREE.FaceColors, opacity:0.8, transparent:true}),
+                new THREE.MeshStandardMaterial( { map: texture, vertexColors: THREE.FaceColors, opacity:0.8, transparent:true}),
+                new THREE.MeshStandardMaterial( { map: texture, vertexColors: THREE.FaceColors, opacity:0.8, transparent:true})  
+            ]*/
+            material=new THREE.MeshStandardMaterial( { map: texture, vertexColors: THREE.FaceColors, opacity:0.8, transparent:true}),
+            material.needsUpdate = true;
             
             
             for (v=0;v<cubeSize;v++){
                 for (u=0;u<cubeSize;u++){
                     for (o=0;o<cubeSize;o++){
-                        var cubeSide=new THREE.MultiMaterial( materials )
+                        //var cubeSide=new THREE.MultiMaterial( materials )
                         var geometry = new THREE.BoxGeometry( 5, 5, 5 );
-				        var cube = new THREE.Mesh( geometry, cubeSide);
+				        var cube = new THREE.Mesh( geometry, material);
 				        cube.position.y=5*o;
                         cube.position.x=5*u;
                         cube.position.z=5*v;
                         cube.castShadow=true;
                         cube.receiveShadow=true;
                         cube.name=v*cubeSize*cubeSize+u*cubeSize+o
+                        //console.log(cube.name)
                         //cube.id=v*cubeSize*cubeSize+u*cubeSize+o
                         //cube.updateMatrix();
                         scene.add(cube)
@@ -114,12 +124,76 @@
             window.addEventListener('mousedown', onMouseDown);
             window.addEventListener( 'mousemove', onMouseMove);
             window.addEventListener("click",itsAMoove)
+            animate();
+            var loader = new THREE.FontLoader();
+        loader.load( 'fonts/helvetiker_regular.typeface.json',function(f){
+            window.fonty=f
+        })
+        var mtlLoader = new THREE.MTLLoader();
+        mtlLoader.load('bomb.mtl', function(materials) {
+                        materials.preload();
+				        var loader = new THREE.OBJLoader();
+                        loader.setMaterials(materials);
+				        loader.load( 'bomb.obj', function ( object ) {
+                            window.objectify=object}
+                                    )});
+            
+        }
+        function bombIt(o){
+            object=objectify.clone()
+                            p=o.position
+                            scene.remove(o)
+                            scene.add(object)
+                            object.position.copy(p)
+                            object.position.y-=1
+                            object.scale.set(0.2,0.2,0.2)
+				       
+        }
+        function itsTheFinal(o,p){
+            for (i=0;i<cubeSize;i++){
+                for (j=0;j<cubeSize;j++){
+                    for (k=0;k<cubeSize;k++){
+                        var actuel=grille[i][j][k]
+                        var objetEnQuestion= scene.getObjectByName((i*cubeSize+j)*cubeSize+k)
+                        if (objetEnQuestion!=null){
+                        if (actuel=="*"){
+                            
+                            bombIt(objetEnQuestion)
+                            
+                            //bombIt(oposm)
+                        }
+                        else if(actuel=="0"){
+                            scene.remove(objetEnQuestion)
+                        }
+                        else{
+                            numberIt(objetEnQuestion,actuel)
+                        }
+                    }}
+                }
+            }
+        }
+        function numberIt(o,nbr){
+            
+                var textGeo = new THREE.TextGeometry( nbr, {
+                    size: 2,
+                    font: fonty,
+                    height:0.5
+                    
+                });
+                var material = new THREE.MeshBasicMaterial({color: mapColor[nbr-1]});
+                var textGeo = new THREE.Mesh(textGeo, material); 
+                
+                p=o.position;
+                scene.remove(o);
+                scene.add(textGeo);
+                textGeo.position.copy(p)
+                textGeo.position.x-=1
+                textGeo.lookAt(camera.position)
+                saveE.push(textGeo);
             
             
         }
-        
         function itsAMoove(){
-            
             raycaster.setFromCamera( mouse, camera );
             var intersects = raycaster.intersectObjects( scene.children );
             // if there is one (or more) intersections
@@ -128,24 +202,23 @@
                 if (intersects[0].object != triangle1) {
                     triangle1 = intersects[0].object;
                     currentId=triangle1.name
-                    currentPosition=triangle1.position
-                    console.log(currentId,currentPosition)
-                    var texture = new THREE.TextureLoader().load( "changed.png" );
-                    triangle1.material=new THREE.MeshBasicMaterial({map: texture, vertexColors: THREE.FaceColors})
-                    var mtlLoader = new THREE.MTLLoader();
-                    mtlLoader.load('bomb.mtl', function(materials) {
-                        materials.preload();
-				        var loader = new THREE.OBJLoader();
-                        loader.setMaterials(materials);
-				        loader.load( 'bomb.obj', function ( object ) {
-                            scene.remove(triangle1)
-                            scene.add(object)
-                            object.position.copy(currentPosition)
-                            object.position.y-=1
-                            console.log(object)
-                            object.scale.set(0.2,0.2,0.2)
-				        });
-                    });
+                    currentPosition=triangle1.position;
+                    grille=JSON.parse(localStorage.getItem('"grille"'));
+                    currentMoove=grille[Math.floor(currentId/(cubeSize*cubeSize))][Math.floor((currentId%(cubeSize*cubeSize))/cubeSize)][(currentId%(cubeSize*cubeSize))%cubeSize]
+                    if (currentMoove=="*"){
+                        itsTheFinal(triangle1,currentPosition)
+                    }
+                    else if (currentMoove=="0"){
+                        revealIt(currentPosition)
+                        scene.remove(triangle1)
+                    }
+                    else{
+                        numberIt(triangle1,currentMoove)
+                    }
+                    //new RegExp(^(0|[1-9][0-9]*)$)
+                    //var texture = new THREE.TextureLoader().load( "changed.png" );
+                    //triangle1.material=new THREE.MeshBasicMaterial({map: texture, vertexColors: THREE.FaceColors})
+                    
                     /* comment j'aurais calculer des vertices
                     var vertices = triangle1.geometry.vertices;
                     var v1 = vertices[face.a];
@@ -162,6 +235,7 @@
             }
         }
         function onWindowResize() {
+            console.log(fonty,objectify)
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -172,6 +246,7 @@
             if(!isMouseDown){
             controls.update(); }
             stats.update();
+            //console.clear()
             render();
         }
 
@@ -196,8 +271,7 @@
                     INTERSECTED.currentHex = INTERSECTED.face.color.getHex();
                     for (p=0;p<12;p++){
                         geometry.faces[p].color.setHex(0xc0392b);
-                    }
-                    //console.log(INTERSECTED.currentHex)
+                    };
                     geometry.colorsNeedUpdate = true;
                     isMouseDown=true;
                 }
@@ -213,7 +287,11 @@
                 } 
                 INTERSECTED = null;
                 isMouseDown=false;
-            }      
+            }
+            
+            saveE.forEach(function(el){
+                el.lookAt(camera.position)
+            })
             renderer.render(scene, camera);
             
         }
@@ -238,7 +316,23 @@
     setTimeout(function(){
         localStorage.clear()
         brython({debug:1, cache:'none'})
+        
+        
     },1)
+    function hackIt(){
+        var oldWarnFunction = console.warn;
+        console.warn = function(){};
+        var oldError=console.error;
+        console.error=function(){};
+        console.debug=function(){};
+        console.assert=function(){};
+        console.clear=function(){};
+        console.exception=function(){};
+        console.info=function(){};
+        console.trace=function(){};
+        console.group=function(){};
+        //console.log=function(){};
+    }
     
 </script>
 <script type="text/python3">
@@ -246,7 +340,7 @@ from browser import window,console,confirm
 from browser.local_storage import storage
 from browser.object_storage import ObjectStorage
 import random
-tailleCube=5
+tailleCube=10
 #sys.setrecursionlimit(2000)
 object_storage = ObjectStorage(storage)
     
@@ -297,7 +391,8 @@ def bombe(d):
         y = random.randint(0, tailleCube-1)
     grille3D[d][y][x] = "*"
     number(x, y, d)
-
+def revealIt(p):
+    x=p.x
 
 def number(x, y,d):
     for c in pos:
@@ -326,11 +421,11 @@ def outputFace(g):
 #main 
 def main():
     for i in range(tailleCube):
-        for loop in range(int(tailleCube*tailleCube*0.05)):
+        for loop in range(int(tailleCube*tailleCube*0.15)):
             bombe(i)
     object_storage["grille"]=grille3D
 main()
-window.mouvementDemineur = onclickExecuted
+window.revealIt = revealIt
     
 
 </script>
